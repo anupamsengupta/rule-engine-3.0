@@ -1,9 +1,17 @@
-You are a senior Java/Spring architect helping me build a reusable Rule Engine + Expression Engine module.
+You are a senior Java/Spring architect helping me build a reusable Rule Engine + Expression Engine module 
+in a Maven multi-module project.
 
-IMPORTANT:
-- Before doing anything, READ and STRICTLY FOLLOW:
+IMPORTANT (MUST FOLLOW):
+- READ and STRICTLY FOLLOW:
   - ARCHITECTURE.md
   - CODING_GUIDELINES.md
+- The project is:
+  - A Maven **multi-module** project using the latest stable Maven.
+  - Uses **Java 21** as the target JDK.
+  - Has a parent POM configuring:
+    - maven-compiler-plugin (Java 21).
+    - maven-surefire-plugin (JUnit 5).
+    - jacoco-maven-plugin (coverage + check).
 - If anything I ask contradicts those docs, you must:
   - Point out the conflict.
   - Propose an alternative that stays compliant.
@@ -19,17 +27,21 @@ CONTEXT & GOAL
 
 We are building a generic, pluggable Rule Engine and Expression Engine that will be reused across projects.
 
+The implementation MUST:
+- Respect the Maven multi-module structure and layering rules in ARCHITECTURE.md.
+- Target Java 21 and assume Maven as the build tool.
+- Be testable via JUnit 5, with coverage measured by JaCoCo.
+
 High-level goals:
 
 1. **Attributes Model**
-   - Define a domain model for "attributes" that can be used in rules and expressions.
-   - Each attribute should have:
-     - A stable identifier (e.g., code or name).
-     - A data type (e.g., STRING, NUMBER, BOOLEAN, DATE, etc.).
+   - Define a domain model for "attributes" used in rules and expressions.
+   - Each attribute has:
+     - Identifier (code/name).
+     - Data type (STRING, NUMBER, BOOLEAN, DATE, etc.).
      - Optional metadata (description, allowed values, constraints).
-   - Attributes must be:
-     - Defined in the domain layer.
-     - Framework-agnostic (no Spring, no JPA).
+   - Defined in the **domain** Maven module.
+   - No Spring, no JPA, no external library dependencies here.
 
 2. **Operators Model (Fixed Set)**
    - Define a fixed set of comparison and logical operators that rules/expressions can use:
@@ -117,8 +129,24 @@ High-level goals:
      - Invoked by higher-level services (e.g., `RuleEngine`, `ExpressionEngine` orchestrators).
 
 ========================================
-ARCHITECTURE & LAYERING EXPECTATIONS
+ARCHITECTURE & MAVEN EXPECTATIONS
 ========================================
+
+- Respect the Maven multi-module layout and module responsibilities from ARCHITECTURE.md:
+  - `project-domain`: attributes, operators, rules, expressions, strategy interfaces, commands, domain exceptions.
+  - `project-application`: orchestrations/use cases, e.g., high-level `RuleEngine` implementation that uses strategies and commands.
+  - `project-api`: REST controllers and DTOs (you may sketch but keep simple here).
+  - `project-infrastructure`: concrete implementations of strategies using MVEL, SPEL, JEXL, Groovy, plus configuration.
+  - `project-app`: Spring Boot main app.
+
+project above can be replaced with rules-engine
+
+- Domain and application modules must not depend on expression engine libraries directly; only on abstractions.
+
+- Assume parent POM already configures:
+  - Java 21 via `maven-compiler-plugin`.
+  - JUnit 5 via `maven-surefire-plugin`.
+  - JaCoCo via `jacoco-maven-plugin` (prepare-agent, report, check).
 
 - Follow the layering pattern from ARCHITECTURE.md:
   - Domain:
@@ -139,37 +167,49 @@ CODING & QUALITY RULES (RECAP)
 
 - Follow CODING_GUIDELINES.md strictly:
   - SOLID.
-  - Low cyclomatic complexity (<= 10).
+  - Low cyclomatic complexity (≤ 10).
   - Strategy pattern for pluggable behavior.
   - Command pattern for operations.
   - Enum-based factories for type → implementation resolution.
-  - Java 21 features (records, etc.), no Lombok.
-  - Clear separation of concerns by module and layer.
+  - Java 21 (no Lombok).
+  - Clear separation between domain/application/api/infrastructure.
 
 ========================================
 WHAT TO OUTPUT
 ========================================
 
 1. First, propose a concise DESIGN:
-   - Key interfaces and classes (names + responsibilities).
-   - Where each belongs (which module/layer and package).
-   - How strategies and commands are wired together.
-   - How the enum-based factory will work.
+   - List of core interfaces and classes (names + responsibilities).
+   - For each, specify:
+     - Maven module (domain/application/api/infrastructure).
+     - Package name.
+   - Explain how strategies, commands, and enum factories work together.
 
-2. Then, implement the core DOMAIN layer pieces:
-   - Attribute model + enums for types.
-   - Operators model (comparison/logical/parenthesis).
-   - Rule abstraction and validate() contract (+ result type).
-   - Expression abstraction and evaluate() contract (+ result type).
-   - Strategy interfaces for expression and scripting engines.
-   - Core exceptions.
+2. Then, implement the core DOMAIN pieces (in `project-domain`):
+   - Attribute model and attribute type enum.
+   - Operators: comparison, logical, parentheses as needed.
+   - Rule abstraction with `validate(...)` contract and `RuleValidationResult`.
+   - Expression abstraction with `evaluate(...)` contract and result type.
+   - Strategy interfaces for expression engines and scripting engines.
+   - Domain-level exceptions: `RuleEvaluationException`, `ExpressionEvaluationException`.
 
-3. Then, implement at least ONE concrete example strategy from each family:
+3. Implement at least ONE example strategy from each family (in `project-infrastructure`):
    - One Expression Language strategy (e.g., SPEL).
    - One Groovy scripting strategy.
-   - These may live in the infrastructure module, following layering rules.
+   - Show how they are wired via an enum-based factory.
 
-4. Ensure all code snippets:
+4. Finally, sketch a minimal Maven parent POM (pseudo or real) that shows:
+   - Multi-module structure.
+   - Java 21 configuration.
+   - JUnit 5 + Surefire.
+   - JaCoCo plugin with example `check` configuration.
+
+For each code snippet:
+- Include package declarations.
+- Indicate the Maven module.
+- Adhere to all architectural and coding guidelines.
+
+5. Ensure all code snippets:
    - Include package declarations.
    - Are consistent with ARCHITECTURE.md and CODING_GUIDELINES.md.
    - Are sufficiently commented so a human can extend them.
