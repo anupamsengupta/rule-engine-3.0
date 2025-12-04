@@ -1,71 +1,63 @@
 # Coding Guidelines (Template for All Projects)
 
-These guidelines ensure uniform, predictable, maintainable, and testable code across all projects.
+These guidelines ensure predictable, maintainable, scalable, and testable code across all projects.  
+All developers and AI-assisted code generation tools MUST comply with these rules.
 
 ---
 
-## 1. Language & Framework Standards
+## 1. Language, Framework & Maven Standards
 
-- Java 21+
-- Spring Boot 3.x for application bootstrapping
-- No Lombok (use records, pattern matching, sealed classes)
-- Prefer functional style where it improves clarity
-- Use constructor injection only
-- No field injection
+- **Java Version:** Java 21+
+- **Build Tool:** Apache Maven (multi-module)
+- **Framework:** Spring Boot 3.x (application/infrastructure only)
+- **Testing:** JUnit 5 (JUnit Jupiter)
+- **Coverage:** JaCoCo integrated via `jacoco-maven-plugin` in the parent POM
+- **Test Execution:** `maven-surefire-plugin`
+
+All modules MUST inherit Java version and plugin configurations from the parent POM.
 
 ---
 
 ## 2. SOLID, Maintainability & Complexity Rules
 
-1. **S – Single Responsibility**
-   - Each class does *one thing*.
-   - Split classes >300 lines.
+### 2.1 SOLID Principles
+- **S**ingle Responsibility — small, cohesive classes
+- **O**pen/Closed — add new strategies/commands instead of modifying existing ones
+- **L**iskov Substitution — all strategy implementations must behave consistently
+- **I**nterface Segregation — small, purpose-focused interfaces
+- **D**ependency Inversion — domain defines abstractions; infrastructure implements them
 
-2. **O – Open/Closed**
-   - Prefer adding new strategies/commands over modifying existing logic.
-
-3. **L – Liskov Substitution**
-   - Ensure all implementations of an interface behave consistently.
-
-4. **I – Interface Segregation**
-   - Keep interfaces narrow (one purpose).
-
-5. **D – Dependency Inversion**
-   - Upper layers depend only on domain interfaces.
-
-### **Cyclomatic Complexity**
-- Max threshold: **10**
-- Use:
+### 2.2 Cyclomatic Complexity
+- Recommended maximum **≤ 10** per method.
+- Reduce complexity using:
   - Strategy pattern
   - Command pattern
-  - Enum factories
-  - Polymorphism  
-  instead of nested conditionals.
+  - Enum-based factories
+  - Value objects
+  - Extract methods when needed
 
 ---
 
-## 3. Design Pattern Guidelines
+## 3. Design Patterns (MANDATORY WHEN APPLICABLE)
 
-### Strategy Pattern
-
-Use for:
-- Evaluation
-- Calculation
-- Conditional workflows
-- Interchangeable business rules
+### 3.1 Strategy Pattern
+Use for pluggable or replaceable behaviors:
+- Expression engines (MVEL, SPEL, JEXL)
+- Script evaluation engines (Groovy)
+- Rule evaluation strategies
+- Computational variations
 
 Rules:
-- Strategies implement a shared interface.
+- Implement shared interfaces defined in domain.
+- Prefer stateless or immutable strategies.
 - Strategy selection done via:
   - Registry, or
   - Enum-based factory.
-
-### Command Pattern
-
+### 3.2 Command Pattern
 Use for:
-- Business actions
-- External side effects
+- Individual business operations
 - Workflow steps
+- Side-effect operations (e.g., message publishing)
 
 Rules:
 - Each command encapsulates one business action.
@@ -80,84 +72,107 @@ Rules:
 
 ---
 
-## 4. Code Style Standards
+## 4. Coding Style & Structure
 
-- Use Java records for DTOs and simple value objects.
-- Use immutable objects where possible.
-- Avoid static util classes unless purely functional.
-- Prefer `Optional` for absence, not for control flow.
-- Use meaningful names; avoid abbreviations.
-- Keep classes small and cohesive.
+- Use Java 21 features:
+  - Records
+  - Pattern matching
+  - Enhanced switch
+- Prefer immutability.
+- Avoid Lombok.
+- Use constructor injection only.
+- No field injection.
+- Name classes clearly and consistently:
+  - `*Controller`, `*Service`, `*UseCase`, `*Strategy`, `*Command`, `*Factory`, `*Repository`
 
 ---
 
-## 5. Spring-Specific Guidelines
+## 5. Spring Guidelines
 
-- Controllers **must not contain business logic**.
-- Services orchestrate; do not mix persistence logic.
-- Repositories must not contain domain logic.
-- Avoid circular dependencies.
-- Use Spring configuration classes for bean wiring.
-- Avoid `@Transactional` at the controller level.
+- Controllers:
+  - DTO validation
+  - Delegate to application services
+  - No business logic
+- Services:
+  - Use-case orchestration
+- Repositories:
+  - Persistence only
+  - must not contain domain logic.
+- Configuration:
+  - Bean wiring and factories in `infrastructure` module
+- Avoid circular dependencies
 
 ---
 
 ## 6. Persistence Guidelines
 
-- Entities in infrastructure layer only.
-- Domain layer uses domain models, not JPA entities.
-- Use mappers (manual or MapStruct) between domain ↔ entity.
-- Use value objects for domain-specific constraints.
+- Entities MUST reside only in `project-infrastructure`.
+- Domain MUST use domain models, not JPA entities.
+- Mapping:
+  - Use manual or tool-based mappers
+  - NEVER return JPA entity to API consumers
 
 ---
 
-## 7. Error Handling Guidelines
+## 7. Error Handling Standards
 
-- Domain errors → domain exceptions.
-- Infrastructure errors → wrapped exceptions.
-- API layer must convert exceptions to standardized API error responses.
+- Domain exceptions:
+  - Business errors
+- Application exceptions:
+  - Use-case flow issues
+- API exceptions:
+  - Translate to proper HTTP responses
+- Wrap external exceptions inside domain/application exceptions.
 
 ---
 
-## 8. Logging Guidelines
+## 8. Logging & Observability
 
-- Use SLF4J / Logback conventions.
-- No logging in domain models.
-- Avoid logging sensitive information.
-- Log at:
+- Use SLF4J for logging.
+- Domain layer MUST NOT log.
+- Infrastructure logs:
+  - INFO for business transitions
   - DEBUG for diagnostics
-  - INFO for state transitions
-  - WARN/ERROR for application failures
+  - WARN/ERROR for failures
+- Avoid logging sensitive data.
 
 ---
 
-## 9. Tests & Documentation
+## 9. Testing Guidelines
 
-- Every non-trivial class needs a unit test.
-- Domain logic must be testable without Spring context.
-- Use JUnit 5 + AssertJ + Testcontainers (if needed).
-- Add JavaDoc on:
-  - Public interfaces
-  - Strategies
-  - Commands
-  - Factories
-  - Domain models
+- Use JUnit 5 for all unit tests.
+- Domain layer MUST be fully testable without Spring context.
+- Integration tests for repositories, external APIs, and app wiring.
+- Use AssertJ or equivalent fluent assertions.
+- JaCoCo MUST run during the build with the `check` goal enforcing coverage.
 
 ---
 
-## 10. AI Code Generation Rules (Cursor / Junie)
+## 10. AI Code Generation Rules
 
-When generating code, the AI must:
+When using Cursor, Junie, or any AI system:
 
-1. Follow this document and `ARCHITECTURE.md` strictly.
+1. ALWAYS read and follow:
+   - `ARCHITECTURE.md`
+   - `CODING_GUIDELINES.md`
 2. Identify the appropriate module before writing code.
 3. Explain briefly:
    - Why the design was chosen,
    - How it fits the architecture.
-4. Avoid introducing:
+4. ALWAYS specify:
+   - Which Maven module the generated file belongs in.
+   - Which architectural layer it belongs to (domain/application/api/infrastructure/app).
+5. Avoid introducing:
    - New patterns,
    - New frameworks,
    - Unnecessary abstractions.
-5. Maintain consistent naming, layering, and patterns.
-
-If a user prompt violates architectural rules, AI must warn and propose alternative solutions.
+6. Maintain consistent naming, layering, and patterns.
+7. MUST use:
+   - Java 21
+   - Multi-module Maven layout
+   - JUnit 5 test structures
+8. MUST use patterns:
+   - Strategy
+   - Command
+   - Enum-based factories
+9. MUST warn and propose alternatives if the user request violates the architecture or coding rules.
