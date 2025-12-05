@@ -14,6 +14,8 @@ It serves as the authoritative reference for all developers and all AI-assisted 
 - Use **Apache Maven** as the build tool.
 - The project MUST be a **Maven multi-module project**.
 - Use the latest stable Maven version.
+- Ensure that **all the dependency versions are included in parent pom** and **managed through dependency management section**. 
+- **Maven submodule** should **never use explicit version** of dependencies.
 
 ### 1.2 Java Version
 - The project MUST target **Java 21**.
