@@ -128,10 +128,19 @@ High-level goals:
      - Small, single-responsibility units.
      - Invoked by higher-level services (e.g., `RuleEngine`, `ExpressionEngine` orchestrators).
 
-8. **Unit testing using JUnit5 and DB Unit **
-   - Add individual JUnits for all modules using mock objects (Mokito):
+8. **Unit testing using JUnit5, DB Unit and Test Containers **
+   - Add individual JUnits for all modules using mock objects (whereever required with Mokito) covering all classes.
    - For persistence layer add DBUnit cases or better applicable test cases to test integration test with DB like H2.
-   - Add end to end cases for API layer testing in project-app maven subodule that will do an end to end test of teh application testing tegh CRUD as well as othe rengine functions exposed by teh REST Controller in project-api submodule.
+   - Add end to end cases for API layer testing in project-app maven subodule that will do an end to end test of the application testing teh CRUD as well as othe rengine functions exposed by the REST Controller in project-api submodule.
+   - Use Test Containers wherever needed for integartion tests.
+
+9. **Load test cases for API testing with SLAs**
+   - Generate JMH benchmarks for same cases as Covered by JUnits (integration tests can be ignored for JMS as we will cover those using K6).
+   - Generate K6 load test cases with bound SLAs for same cases as Covered by JUnits Integration tests.
+
+10. **Containerization requirements**
+   - Containerize the generated application such that it is readily runnable in Amazon AWS ECS / EKS.
+   
 
 ========================================
 ARCHITECTURE & MAVEN EXPECTATIONS
@@ -190,6 +199,7 @@ WHAT TO OUTPUT
      - Maven module (domain/application/api/infrastructure).
      - Package name.
    - Explain how strategies, commands, and enum factories work together.
+   - Create a Design.md to list out the DESIGN OR README of the system and overall code traversal, usage samples and build and run methods.
 
 2. Then, implement the core DOMAIN pieces (in `project-domain`):
    - Attribute model and attribute type enum.
