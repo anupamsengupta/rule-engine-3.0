@@ -151,7 +151,7 @@ ARCHITECTURE & MAVEN EXPECTATIONS
   - `project-application`: orchestrations/use cases, e.g., high-level `RuleEngine` implementation that uses strategies and commands.
   - `project-api`: REST controllers and DTOs (you may sketch but keep simple here).
   - `project-persistence`: Persistence layer, including Entities, DAO (allowing possibilty to replace the DB implementation like postgre SQL, Dynamo, Clickhouse), service layer, rpositories, mappers (domain -> persistence), database configurations (postgre SQL, Dynamo, Clickhouse).
-    - `project-infrastructure`: concrete implementations of strategies using MVEL, SPEL, JEXL, Groovy, plus configuration.
+  - `project-infrastructure`: concrete implementations of strategies using MVEL, SPEL, JEXL, Groovy, plus configuration.
   - `project-app`: Spring Boot main app.
 
 project above can be replaced with rules-engine
