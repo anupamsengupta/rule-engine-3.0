@@ -128,6 +128,11 @@ High-level goals:
      - Small, single-responsibility units.
      - Invoked by higher-level services (e.g., `RuleEngine`, `ExpressionEngine` orchestrators).
 
+8. **Unit testing using JUnit5 and DB Unit **
+   - Add individual JUnits for all modules using mock objects (Mokito):
+   - For persistence layer add DBUnit cases or better applicable test cases to test integration test with DB like H2.
+   - Add end to end cases for API layer testing in project-app maven subodule that will do an end to end test of teh application testing tegh CRUD as well as othe rengine functions exposed by teh REST Controller in project-api submodule.
+
 ========================================
 ARCHITECTURE & MAVEN EXPECTATIONS
 ========================================
