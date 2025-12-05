@@ -37,10 +37,13 @@ A typical project MUST follow this structure:
 
 parent-pom/
 ├── project-domain
+├── project-persistence
 ├── project-application
 ├── project-api
 ├── project-infrastructure
 └── project-app
+└── project-benchmarks
+└── project-loadtest-scripts
 
 you can replace project with rule-engine
 

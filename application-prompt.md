@@ -131,12 +131,12 @@ High-level goals:
 8. **Unit testing using JUnit5, DB Unit and Test Containers **
    - Add individual JUnits for all modules using mock objects (whereever required with Mokito) covering all classes.
    - For persistence layer add DBUnit cases or better applicable test cases to test integration test with DB like H2.
-   - Add end to end cases for API layer testing in project-app maven subodule that will do an end to end test of the application testing teh CRUD as well as othe rengine functions exposed by the REST Controller in project-api submodule.
+   - Add end to end cases for API layer testing in project-app maven subodule that will do an end to end test of the application testing the CRUD as well as othe rengine functions exposed by the REST Controller in project-api submodule.
    - Use Test Containers wherever needed for integartion tests.
 
 9. **Load test cases for API testing with SLAs**
-   - Generate JMH benchmarks for same cases as Covered by JUnits (integration tests can be ignored for JMS as we will cover those using K6).
-   - Generate K6 load test cases with bound SLAs for same cases as Covered by JUnits Integration tests.
+   - Generate JMH benchmarks for same cases as Covered by JUnits (integration tests can be ignored for JMS as we will cover those using K6), use project-benchmarks for this.
+   - Generate K6 load test cases with bound SLAs for same cases as Covered by JUnits Integration tests (use project-loadtest-scripts for this).
 
 10. **Containerization requirements**
    - Containerize the generated application such that it is readily runnable in Amazon AWS ECS / EKS.
