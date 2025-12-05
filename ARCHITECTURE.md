@@ -71,7 +71,7 @@ you can replace project with rule-engine
 - **Domain Layer**  
   value objects, domain services, strategies, commands
 - **Persistence Layer**  
-  Entities, Spring repositories, caching for write through
+  Entities, Spring repositories, caching for write through (incorporate two caching strategies, In-Memory cache using caffine and distributed cache using elastic cache Redis)
 - **Infrastructure Layer**  
   external API integrations, configuration
 - **App Layer**  

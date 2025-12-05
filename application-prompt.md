@@ -148,11 +148,12 @@ ARCHITECTURE & MAVEN EXPECTATIONS
 
 - Respect the Maven multi-module layout and module responsibilities from ARCHITECTURE.md:
   - `project-domain`: attributes, operators, rules, expressions, strategy interfaces, commands, domain exceptions.
+  - `project-persistence`: Persistence layer, including Entities, DAO (allowing possibilty to replace the DB implementation like postgre SQL, Dynamo, Clickhouse), service layer, rpositories, mappers (domain -> persistence), database configurations (postgre SQL, Dynamo, Clickhouse).
   - `project-application`: orchestrations/use cases, e.g., high-level `RuleEngine` implementation that uses strategies and commands.
   - `project-api`: REST controllers and DTOs (you may sketch but keep simple here).
-  - `project-persistence`: Persistence layer, including Entities, DAO (allowing possibilty to replace the DB implementation like postgre SQL, Dynamo, Clickhouse), service layer, rpositories, mappers (domain -> persistence), database configurations (postgre SQL, Dynamo, Clickhouse).
   - `project-infrastructure`: concrete implementations of strategies using MVEL, SPEL, JEXL, Groovy, plus configuration.
-  - `project-app`: Spring Boot main app.
+  - `project-benchmark`: JMH benchmark for major JUnit areas.
+  - `project-loadtest-scripts`: k6 load test scripts.
 
 project above can be replaced with rules-engine
 
