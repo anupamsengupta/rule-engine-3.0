@@ -15,7 +15,8 @@ public final class EvaluationContext {
     private final Map<String, Object> attributeValues;
 
     private EvaluationContext(Map<String, Object> attributeValues) {
-        this.attributeValues = Collections.unmodifiableMap(new HashMap<>(attributeValues));
+        //this.attributeValues = Collections.unmodifiableMap(new HashMap<>(attributeValues));
+        this.attributeValues = new HashMap<>(attributeValues);
     }
 
     /**

@@ -22,7 +22,8 @@ public class JexlExpressionEngine implements ExpressionEvaluationStrategy {
     private final JexlEngine jexlEngine;
 
     public JexlExpressionEngine() {
-        // Create JEXL engine with default configuration
+        // Create JEXL engine with configuration that supports method calls
+        // This allows JEXL to call methods on objects (like record accessors)
         JexlBuilder builder = new JexlBuilder();
         this.jexlEngine = builder.create();
     }
@@ -32,13 +33,36 @@ public class JexlExpressionEngine implements ExpressionEvaluationStrategy {
         try {
             // Create JEXL context with attribute values
             JexlContext jexlContext = new MapContext(context.getAllValues());
-            
-            // Create and compile the expression
-            JexlExpression expression = jexlEngine.createExpression(expressionString);
-            
-            // Evaluate the expression
-            Object result = expression.evaluate(jexlContext);
-            
+
+            // Check if expression contains multiple statements (semicolons or control structures)
+            // JEXL scripts can have: for loops (with ':' or 'in'), foreach, if statements, semicolons
+            boolean isScript = expressionString.contains(";") ||
+                    expressionString.contains("for ") ||
+                    expressionString.contains("foreach ") ||
+                    expressionString.contains("if ") ||
+                    expressionString.contains(" while ");
+            Object result;
+            if (isScript) {
+                // Try to create and evaluate as script
+                try {
+                    JexlScript jexlScript = jexlEngine.createScript(expressionString);
+                    result = jexlScript.execute(jexlContext);
+                } catch (Exception scriptException) {
+                    // If script creation fails, try as expression (for backward compatibility)
+                    try {
+                        JexlExpression jexlExpression = jexlEngine.createExpression(expressionString);
+                        result = jexlExpression.evaluate(jexlContext);
+                    } catch (Exception exprException) {
+                        // Re-throw the original script exception as it's more informative
+                        throw scriptException;
+                    }
+                }
+            } else {
+                // Create and evaluate as expression
+                JexlExpression jexlExpression = jexlEngine.createExpression(expressionString);
+                result = jexlExpression.evaluate(jexlContext);
+            }
+
             // Determine result type
             AttributeType resultType = inferType(result);
             
