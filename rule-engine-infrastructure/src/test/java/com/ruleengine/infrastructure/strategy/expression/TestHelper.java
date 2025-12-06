@@ -16,5 +16,10 @@ public class TestHelper {
                 .map(li -> li.product().price().multiply(BigDecimal.valueOf(li.quantity())).subtract(li.appliedDiscount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+    
+    // Instance method for JEXL compatibility
+    public BigDecimal calculateSum(List<LineItem> lineItems) {
+        return sumLineItemsTotal(lineItems);
+    }
 }
 

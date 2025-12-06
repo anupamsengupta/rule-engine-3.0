@@ -85,16 +85,26 @@ class JexlExpressionEngineTest {
     //private static final String JEXL_CART_TOTAL_EXPRESSION = "root.cartTotalAmount() == helper.sumLineItemsTotal(root.lineItems())";
     //private static final String JEXL_USER_LIMIT_EXPRESSION = "root.cartTotalAmount().compareTo(root.user().limit()) <= 0";
     /** JEXL expression that validates cart total equals sum of line item totals.
-     * Each line item total is calculated as: (quantity * product.price) - appliedDiscount */
-    private static final String JEXL_CART_TOTAL_EXPRESSION = "sum = new java.math.BigDecimal('0'); " +
-            "for (li : shoppingCart.lineItems()) { " +
-            " sum = sum.add(li.product().price().multiply(new java.math.BigDecimal(li.quantity())).subtract(li.appliedDiscount())); " +
+     * Each line item total is calculated as: (quantity * product.price) - appliedDiscount
+     * Uses LineItemWrapper to provide getter methods that JEXL can access
+     * Calculates sum inline using JEXL script syntax */
+    private static final String JEXL_CART_TOTAL_EXPRESSION = 
+            "var total = cart.getCartTotalAmount(); " +
+            "var sum = new java.math.BigDecimal('0'); " +
+            "for (var li : cart.getLineItemWrappers()) { " +
+            "  var itemTotal = li.getProduct().getPrice().multiply(new java.math.BigDecimal(li.getQuantity())).subtract(li.getAppliedDiscount()); " +
+            "  sum = sum.add(itemTotal); " +
             "} " +
-            "shoppingCart.cartTotalAmount().compareTo(sum) == 0";
+            "var cmp = total.compareTo(sum); " +
+            "cmp == 0";
 
     /** JEXL expression that validates cart total does not exceed user's limit.
-     * Returns true if cartTotalAmount <= user.limit */
-    private static final String JEXL_USER_LIMIT_EXPRESSION = "shoppingCart.cartTotalAmount().compareTo(shoppingCart.user().limit()) <= 0";
+     * Returns true if cartTotalAmount <= user.limit
+     * Uses direct BigDecimal comparison */
+    private static final String JEXL_USER_LIMIT_EXPRESSION = 
+            "var total = cart.getCartTotalAmount(); " +
+            "var limit = cart.getUserLimit(); " +
+            "total != null && limit != null && total.compareTo(limit) <= 0";
 
     @Test
     void testJexlValidCart_TotalMatchesLineItemsAndBelowLimit() throws ExpressionEvaluationException {
@@ -102,9 +112,12 @@ class JexlExpressionEngineTest {
         BigDecimal expectedTotal = TestHelper.sumLineItemsTotal(cart.lineItems());
         cart = new ShoppingCart(cart.lineItems(), cart.user(), expectedTotal);
 
-        // Create mutable map with root and helper object
+        // Create mutable map with cart wrapper
+        // JEXL has issues with Java records, so we use a wrapper with getter methods
+        // Using inline calculation instead of helper method due to JEXL limitations
         Map<String, Object> contextValues = new java.util.HashMap<>();
-        contextValues.put("root", cart);
+        CartWrapper cartWrapper = new CartWrapper(cart);
+        contextValues.put("cart", cartWrapper);
         EvaluationContext context = EvaluationContext.from(contextValues);
 
         ExpressionEvaluationResult result = engine.evaluate(JEXL_CART_TOTAL_EXPRESSION, context);
@@ -120,9 +133,11 @@ class JexlExpressionEngineTest {
         BigDecimal wrongTotal = expectedTotal.add(new BigDecimal("10.00"));
         cart = new ShoppingCart(cart.lineItems(), cart.user(), wrongTotal);
 
-        // Create mutable map with root and helper object
+        // Create mutable map with cart wrapper and helper object
+        // JEXL has issues with Java records, so we use a wrapper with getter methods
         Map<String, Object> contextValues = new java.util.HashMap<>();
-        contextValues.put("root", cart);
+        contextValues.put("cart", new CartWrapper(cart));
+        contextValues.put("helper", new TestHelper());
         EvaluationContext context = EvaluationContext.from(contextValues);
 
         ExpressionEvaluationResult result = engine.evaluate(JEXL_CART_TOTAL_EXPRESSION, context);
@@ -138,12 +153,35 @@ class JexlExpressionEngineTest {
         BigDecimal expectedTotal = TestHelper.sumLineItemsTotal(lineItems);
         ShoppingCart cart = new ShoppingCart(lineItems, lowLimitUser, expectedTotal);
 
-        EvaluationContext context = EvaluationContext.from(Map.of("root", cart));
+        // Create mutable map with cart wrapper and helper
+        Map<String, Object> contextValues = new java.util.HashMap<>();
+        contextValues.put("cart", new CartWrapper(cart));
+        contextValues.put("helper", new TestHelper());
+        EvaluationContext context = EvaluationContext.from(contextValues);
 
         ExpressionEvaluationResult result = engine.evaluate(JEXL_USER_LIMIT_EXPRESSION, context);
 
         assertNotNull(result);
         assertFalse((Boolean) result.value());
+    }
+
+    @Test
+    void testJexlInvalidCart_TotalDoesNotExceedLimit() throws ExpressionEvaluationException {
+        List<LineItem> lineItems = createShoppingCart().lineItems();
+        User lowLimitUser = new User("login123", "user456", new BigDecimal("1100"), UserStatus.ACTIVE, "user@example.com");
+        BigDecimal expectedTotal = TestHelper.sumLineItemsTotal(lineItems);
+        ShoppingCart cart = new ShoppingCart(lineItems, lowLimitUser, expectedTotal);
+
+        // Create mutable map with cart wrapper and helper
+        Map<String, Object> contextValues = new java.util.HashMap<>();
+        contextValues.put("cart", new CartWrapper(cart));
+        contextValues.put("helper", new TestHelper());
+        EvaluationContext context = EvaluationContext.from(contextValues);
+
+        ExpressionEvaluationResult result = engine.evaluate(JEXL_USER_LIMIT_EXPRESSION, context);
+
+        assertNotNull(result);
+        assertTrue((Boolean) result.value());
     }
 
     @Test
@@ -154,9 +192,11 @@ class JexlExpressionEngineTest {
         BigDecimal wrongTotal = expectedTotal.add(new BigDecimal("10.00"));
         ShoppingCart cart = new ShoppingCart(lineItems, lowLimitUser, wrongTotal);
 
-        // Create mutable map with root and helper object
+        // Create mutable map with cart wrapper and helper object
+        // JEXL has issues with Java records, so we use a wrapper with getter methods
         Map<String, Object> contextValues = new java.util.HashMap<>();
-        contextValues.put("root", cart);
+        contextValues.put("cart", new CartWrapper(cart));
+        contextValues.put("helper", new TestHelper());
         EvaluationContext context = EvaluationContext.from(contextValues);
 
         ExpressionEvaluationResult result = engine.evaluate(JEXL_CART_TOTAL_EXPRESSION, context);

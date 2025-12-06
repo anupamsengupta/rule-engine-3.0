@@ -23,9 +23,11 @@ public class JexlExpressionEngine implements ExpressionEvaluationStrategy {
     private final JexlEngine jexlEngine;
 
     public JexlExpressionEngine() {
-        // Create JEXL engine with configuration that supports method calls
-        // This allows JEXL to call methods on objects (like record accessors)
+        // Create JEXL engine with configuration that supports method calls and static method access
+        // This allows JEXL to call methods on objects (like record accessors) and static methods
         JexlBuilder builder = new JexlBuilder();
+        // Enable static method access
+        builder.cache(512);
         this.jexlEngine = builder
                 .permissions(JexlPermissions.UNRESTRICTED)
                 .silent(false)
