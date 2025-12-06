@@ -7,6 +7,7 @@ import com.ruleengine.domain.expression.ExpressionEvaluationResult;
 import com.ruleengine.domain.factory.EngineType;
 import com.ruleengine.domain.strategy.ExpressionEvaluationStrategy;
 import org.apache.commons.jexl3.*;
+import org.apache.commons.jexl3.introspection.JexlPermissions;
 
 import java.util.Map;
 
@@ -25,7 +26,10 @@ public class JexlExpressionEngine implements ExpressionEvaluationStrategy {
         // Create JEXL engine with configuration that supports method calls
         // This allows JEXL to call methods on objects (like record accessors)
         JexlBuilder builder = new JexlBuilder();
-        this.jexlEngine = builder.create();
+        this.jexlEngine = builder
+                .permissions(JexlPermissions.UNRESTRICTED)
+                .silent(false)
+                .create();
     }
 
     @Override
