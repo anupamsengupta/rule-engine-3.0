@@ -62,12 +62,15 @@ public class RuleEngineService {
 
     /**
      * Validates a rule set against the given evaluation context.
+     * Uses the engine type specified in the RuleSet.
      */
     public List<RuleValidationResult> validateRuleSet(
             RuleSet ruleSet,
             EvaluationContext context
     ) throws RuleEvaluationException {
-        return validateRuleSet(ruleSet, context, defaultEngineType);
+        // Use the engine type from the RuleSet, fallback to default if not specified
+        EngineType engineType = ruleSet.engineType() != null ? ruleSet.engineType() : defaultEngineType;
+        return validateRuleSet(ruleSet, context, engineType);
     }
 
     /**

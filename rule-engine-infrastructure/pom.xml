@@ -35,6 +35,18 @@
             <artifactId>groovy</artifactId>
         </dependency>
 
+        <!-- MVEL -->
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+        </dependency>
+
+        <!-- JEXL -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-jexl3</artifactId>
+        </dependency>
+
         <!-- Spring Context for configuration -->
         <dependency>
             <groupId>org.springframework</groupId>

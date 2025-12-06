@@ -50,6 +50,8 @@
         <h2.version>2.2.224</h2.version>
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
         <spring-data-jpa.version>3.2.0</spring-data-jpa.version>
+        <mvel.version>2.5.0.Final</mvel.version>
+        <jexl.version>3.3</jexl.version>
     </properties>
 
     <dependencyManagement>
@@ -192,6 +194,20 @@
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
+            </dependency>
+
+            <!-- MVEL -->
+            <dependency>
+                <groupId>org.mvel</groupId>
+                <artifactId>mvel2</artifactId>
+                <version>${mvel.version}</version>
+            </dependency>
+
+            <!-- JEXL -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-jexl3</artifactId>
+                <version>${jexl.version}</version>
             </dependency>
 
             <!-- JMH -->
