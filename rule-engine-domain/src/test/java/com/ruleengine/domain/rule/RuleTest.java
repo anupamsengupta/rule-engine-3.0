@@ -72,7 +72,7 @@ class RuleTest {
         RuleValidationResult result = rule.validate(context, strategy);
 
         assertThat(result.passed()).isFalse();
-        assertThat(result.message()).contains("not active");
+        assertThat(result.message().get().contains("not active")).isTrue();
     }
 
     @Test
