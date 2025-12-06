@@ -31,7 +31,7 @@ class AttributeMapperTest {
 
     @Test
     void shouldMapEntityToDomain() {
-        AttributeEntity entity = new AttributeEntity("customer.age", AttributeTypeEntity.NUMBER, "Customer age", null);
+        AttributeEntity entity = new AttributeEntity("customer.age", "customer.age", AttributeTypeEntity.NUMBER, "Customer age", null);
 
         Attribute domain = AttributeMapper.toDomain(entity);
 

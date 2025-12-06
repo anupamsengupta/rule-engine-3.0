@@ -18,6 +18,9 @@ public class AttributeEntity {
     @Column(name = "code", nullable = false, unique = true)
     private String code;
 
+    @Column(name = "path", nullable = false, unique = true)
+    private String path;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private AttributeTypeEntity type;
@@ -35,8 +38,9 @@ public class AttributeEntity {
         // Required by JPA
     }
 
-    public AttributeEntity(String code, AttributeTypeEntity type, String description, Map<String, String> constraints) {
+    public AttributeEntity(String code, String path, AttributeTypeEntity type, String description, Map<String, String> constraints) {
         this.code = code;
+        this.path = path;
         this.type = type;
         this.description = description;
         this.constraints = constraints;
@@ -49,6 +53,14 @@ public class AttributeEntity {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public AttributeTypeEntity getType() {

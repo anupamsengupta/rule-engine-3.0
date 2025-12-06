@@ -17,6 +17,7 @@ import java.util.Optional;
  */
 public record Attribute(
         String code,
+        String path, 
         AttributeType type,
         Optional<String> description,
         Optional<Map<String, Object>> constraints
@@ -31,27 +32,36 @@ public record Attribute(
         if (type == null) {
             throw new IllegalArgumentException("Attribute type cannot be null");
         }
+        if (path == null) {
+            path = code;
+        }
     }
 
     /**
      * Creates an attribute with code and type only.
      */
     public Attribute(String code, AttributeType type) {
-        this(code, type, Optional.empty(), Optional.empty());
+        this(code, code, type, Optional.empty(), Optional.empty());
     }
 
     /**
      * Creates an attribute with description.
      */
     public Attribute(String code, AttributeType type, String description) {
-        this(code, type, Optional.ofNullable(description), Optional.empty());
+        this(code, code, type, Optional.ofNullable(description), Optional.empty());
     }
 
     /**
      * Creates an attribute with description and constraints.
      */
     public Attribute(String code, AttributeType type, String description, Map<String, Object> constraints) {
-        this(code, type, Optional.ofNullable(description), Optional.ofNullable(constraints));
+        this(code, code, type, Optional.ofNullable(description), Optional.ofNullable(constraints));
+    }
+    /**
+     * Creates an attribute with description and constraints.
+     */
+    public Attribute(String code, String path, AttributeType type, String description, Map<String, Object> constraints) {
+        this(code, path, type, Optional.ofNullable(description), Optional.ofNullable(constraints));
     }
 }
 

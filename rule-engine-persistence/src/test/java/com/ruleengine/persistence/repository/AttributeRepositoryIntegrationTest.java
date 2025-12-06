@@ -13,14 +13,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration test for AttributeRepository using Testcontainers.
- * 
+ * <p>
  * Module: rule-engine-persistence
  * Layer: Persistence
  */
 @DataJpaTest
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.datasource.url=jdbc:h2:mem:testdb",
+        "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 class AttributeRepositoryIntegrationTest {
 
@@ -30,10 +30,11 @@ class AttributeRepositoryIntegrationTest {
     @Test
     void shouldSaveAndRetrieveAttribute() {
         AttributeEntity entity = new AttributeEntity(
-            "customer.age",
-            AttributeTypeEntity.NUMBER,
-            "Customer age",
-            null
+                "customer.age",
+                "customer.age",
+                AttributeTypeEntity.NUMBER,
+                "Customer age",
+                null
         );
 
         repository.save(entity);
@@ -47,10 +48,11 @@ class AttributeRepositoryIntegrationTest {
     @Test
     void shouldCheckExistence() {
         AttributeEntity entity = new AttributeEntity(
-            "customer.age",
-            AttributeTypeEntity.NUMBER,
-            null,
-            null
+                "customer.age",
+                "customer.age",
+                AttributeTypeEntity.NUMBER,
+                null,
+                null
         );
 
         repository.save(entity);

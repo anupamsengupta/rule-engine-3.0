@@ -37,6 +37,7 @@ public final class AttributeMapper {
 
         return new Attribute(
             entity.getCode(),
+            entity.getPath(),
             toDomainType(entity.getType()),
             Optional.ofNullable(entity.getDescription()),
             Optional.ofNullable(constraints)
@@ -62,6 +63,7 @@ public final class AttributeMapper {
 
         return new AttributeEntity(
             domain.code(),
+            domain.path(),
             toEntityType(domain.type()),
             domain.description().orElse(null),
             constraints
