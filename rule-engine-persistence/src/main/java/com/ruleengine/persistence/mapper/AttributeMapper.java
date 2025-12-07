@@ -32,7 +32,28 @@ public final class AttributeMapper {
         Map<String, Object> constraints = null;
         if (entity.getConstraints() != null) {
             constraints = entity.getConstraints().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> {
+                        // Try to convert string values back to appropriate types
+                        String value = entry.getValue();
+                        if (value == null) {
+                            return null;
+                        }
+                        // Try to parse as integer
+                        try {
+                            return Integer.parseInt(value);
+                        } catch (NumberFormatException e) {
+                            // Try to parse as double
+                            try {
+                                return Double.parseDouble(value);
+                            } catch (NumberFormatException e2) {
+                                // Return as string
+                                return value;
+                            }
+                        }
+                    }
+                ));
         }
 
         return new Attribute(

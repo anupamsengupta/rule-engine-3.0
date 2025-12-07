@@ -95,16 +95,23 @@ public class RuleService {
         RuleEntity existing = ruleRepository.findById(rule.id())
                 .orElseThrow(() -> new IllegalArgumentException("Rule with id '" + rule.id() + "' not found"));
         
-        // Delete old conditions
+        // Update basic fields
+        existing.setName(rule.name());
+        existing.setPriority(rule.metadata().priority());
+        existing.setActive(rule.metadata().active());
+        existing.setTags(rule.metadata().tags());
+        
+        // Properly manage conditions collection to avoid Hibernate issues
+        // Remove all existing conditions
         existing.getConditions().clear();
         
-        // Map and set new rule data
-        RuleEntity updated = RuleMapper.toEntity(rule);
-        existing.setName(updated.getName());
-        existing.setPriority(updated.getPriority());
-        existing.setActive(updated.getActive());
-        existing.setTags(updated.getTags());
-        existing.setConditions(updated.getConditions());
+        // Add new conditions
+        for (int i = 0; i < rule.conditions().size(); i++) {
+            com.ruleengine.domain.rule.Condition condition = rule.conditions().get(i);
+            com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
+                    com.ruleengine.persistence.mapper.ConditionMapper.toEntity(condition, existing, i);
+            existing.getConditions().add(conditionEntity);
+        }
         
         RuleEntity saved = ruleRepository.save(existing);
         return RuleMapper.toDomain(saved);
