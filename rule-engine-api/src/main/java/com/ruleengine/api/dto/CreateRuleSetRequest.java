@@ -13,7 +13,8 @@ public record CreateRuleSetRequest(
         String name,
         List<String> ruleIds,
         Boolean stopOnFirstFailure,
-        String engineType
+        String engineType,
+        String ruleCategory
 ) {
 }
 

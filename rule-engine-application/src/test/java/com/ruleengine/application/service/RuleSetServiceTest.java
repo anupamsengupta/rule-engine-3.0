@@ -52,7 +52,8 @@ class RuleSetServiceTest {
                 "Test rule set",
                 List.of(rule),
                 false,
-                EngineType.SPEL
+                EngineType.SPEL,
+                "Validation"
         );
     }
 
@@ -63,7 +64,8 @@ class RuleSetServiceTest {
                 "ruleset-1",
                 "Test rule set",
                 false,
-                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL
+                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL,
+                "Validation"
         );
         // Set up a rule with conditions for the rule set
         RuleEntity ruleEntity = new RuleEntity(
@@ -107,7 +109,8 @@ class RuleSetServiceTest {
                 "ruleset-1",
                 "Test rule set",
                 false,
-                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL
+                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL,
+                "Validation"
         );
         // Set up a rule with conditions for the rule set
         RuleEntity ruleEntity = new RuleEntity(
@@ -148,7 +151,8 @@ class RuleSetServiceTest {
                 "ruleset-1",
                 "Old name",
                 false,
-                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL
+                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL,
+                "Validation"
         );
         // Set up existing rule
         RuleEntity existingRuleEntity = new RuleEntity(
@@ -165,7 +169,8 @@ class RuleSetServiceTest {
                 "ruleset-1",
                 "New name",
                 true,
-                com.ruleengine.persistence.entity.EngineTypeEntity.MVEL
+                com.ruleengine.persistence.entity.EngineTypeEntity.MVEL,
+                "Validation"
         );
         savedEntity.setRules(new java.util.ArrayList<>(List.of(existingRuleEntity)));
         when(ruleSetRepository.findById("ruleset-1")).thenReturn(Optional.of(existingEntity));
@@ -176,7 +181,8 @@ class RuleSetServiceTest {
                 "New name",
                 testRuleSet.rules(),
                 true,
-                EngineType.MVEL
+                EngineType.MVEL,
+                "Validation"
         );
 
         // When
@@ -198,7 +204,8 @@ class RuleSetServiceTest {
                 "Non-existent rule set",
                 testRuleSet.rules(),
                 false,
-                EngineType.SPEL
+                EngineType.SPEL,
+                "Validation"
         );
 
         // When/Then
@@ -241,6 +248,53 @@ class RuleSetServiceTest {
 
         // Then
         assertThat(exists).isTrue();
+    }
+
+    @Test
+    void shouldGetRuleSetsByCategory() {
+        // Given
+        RuleSetEntity entity1 = new RuleSetEntity(
+                "ruleset-1",
+                "Test rule set 1",
+                false,
+                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL,
+                "Pricing"
+        );
+        RuleEntity ruleEntity1 = new RuleEntity(
+                "rule-1",
+                "Test rule",
+                1,
+                true,
+                null
+        );
+        ruleEntity1.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
+        entity1.setRules(new java.util.ArrayList<>(List.of(ruleEntity1)));
+        
+        RuleSetEntity entity2 = new RuleSetEntity(
+                "ruleset-2",
+                "Test rule set 2",
+                false,
+                com.ruleengine.persistence.entity.EngineTypeEntity.SPEL,
+                "Pricing"
+        );
+        RuleEntity ruleEntity2 = new RuleEntity(
+                "rule-2",
+                "Test rule 2",
+                1,
+                true,
+                null
+        );
+        ruleEntity2.setConditionIds(new java.util.ArrayList<>(List.of("cond-2")));
+        entity2.setRules(new java.util.ArrayList<>(List.of(ruleEntity2)));
+        
+        when(ruleSetRepository.findByRuleCategory("Pricing")).thenReturn(List.of(entity1, entity2));
+
+        // When
+        List<RuleSet> result = ruleSetService.getRuleSetsByCategory("Pricing");
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(rs -> "Pricing".equals(rs.ruleCategory()));
     }
 }
 

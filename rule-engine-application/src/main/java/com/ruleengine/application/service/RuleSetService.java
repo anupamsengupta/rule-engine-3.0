@@ -70,6 +70,7 @@ public class RuleSetService {
         existing.setName(updated.getName());
         existing.setStopOnFirstFailure(updated.getStopOnFirstFailure());
         existing.setEngineType(updated.getEngineType());
+        existing.setRuleCategory(updated.getRuleCategory());
         existing.setRules(updated.getRules());
         
         RuleSetEntity saved = ruleSetRepository.save(existing);
@@ -92,6 +93,16 @@ public class RuleSetService {
     @Transactional(readOnly = true)
     public boolean ruleSetExists(String id) {
         return ruleSetRepository.existsById(id);
+    }
+
+    /**
+     * Retrieves all rule sets by category.
+     */
+    @Transactional(readOnly = true)
+    public List<RuleSet> getRuleSetsByCategory(String ruleCategory) {
+        return ruleSetRepository.findByRuleCategory(ruleCategory).stream()
+                .map(RuleSetMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }
 

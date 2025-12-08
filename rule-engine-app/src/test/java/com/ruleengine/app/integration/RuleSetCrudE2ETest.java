@@ -114,7 +114,8 @@ class RuleSetCrudE2ETest {
                 "Test rule set",
                 List.of("rule-1" + uuid_exec, "rule-2" + uuid_exec),
                 false,
-                "SPEL"
+                "SPEL",
+                "Validation"
         );
 
         ResponseEntity<RuleSetDto> response = restTemplate.postForEntity(
@@ -129,6 +130,7 @@ class RuleSetCrudE2ETest {
         assertThat(response.getBody().name()).isEqualTo("Test rule set");
         assertThat(response.getBody().ruleIds()).hasSize(2);
         assertThat(response.getBody().engineType()).isEqualTo("SPEL");
+        assertThat(response.getBody().ruleCategory()).isEqualTo("Validation");
     }
 
     @Test
@@ -139,7 +141,8 @@ class RuleSetCrudE2ETest {
                 "Test rule set",
                 List.of("rule-1" + uuid_exec),
                 false,
-                "MVEL"
+                "MVEL",
+                "Validation"
         );
         ResponseEntity<RuleSetDto> response = restTemplate.postForEntity(getBaseUrl(), createRequest, RuleSetDto.class);
 
@@ -160,13 +163,13 @@ class RuleSetCrudE2ETest {
         restTemplate.postForEntity(
                 getBaseUrl(),
                 new CreateRuleSetRequest("ruleset-all-1", "RuleSet 1", 
-                        List.of("rule-1" + uuid_exec), false, "SPEL"),
+                        List.of("rule-1" + uuid_exec), false, "SPEL", "Validation"),
                 RuleSetDto.class
         );
         restTemplate.postForEntity(
                 getBaseUrl(),
                 new CreateRuleSetRequest("ruleset-all-2", "RuleSet 2",
-                        List.of("rule-2" + uuid_exec), true, "JEXL"),
+                        List.of("rule-2" + uuid_exec), true, "JEXL", "Pricing1"),
                 RuleSetDto.class
         );
 
@@ -188,7 +191,8 @@ class RuleSetCrudE2ETest {
                 "Original name",
                 List.of("rule-1" + uuid_exec),
                 false,
-                "SPEL"
+                "SPEL",
+                "Validation"
         );
         restTemplate.postForEntity(getBaseUrl(), createRequest, RuleSetDto.class);
 
@@ -197,7 +201,8 @@ class RuleSetCrudE2ETest {
                 "Updated name",
                 List.of("rule-2" + uuid_exec),
                 true,
-                "MVEL"
+                "MVEL",
+                "Pricing1"
         );
 
         ResponseEntity<RuleSetDto> response = restTemplate.exchange(
@@ -212,6 +217,7 @@ class RuleSetCrudE2ETest {
         assertThat(response.getBody().name()).isEqualTo("Updated name");
         assertThat(response.getBody().stopOnFirstFailure()).isTrue();
         assertThat(response.getBody().engineType()).isEqualTo("MVEL");
+        assertThat(response.getBody().ruleCategory()).isEqualTo("Pricing1");
     }
 
     @Test
@@ -222,7 +228,8 @@ class RuleSetCrudE2ETest {
                 "To be deleted",
                 List.of("rule-1" + uuid_exec),
                 false,
-                "SPEL"
+                "SPEL",
+                "Validation"
         );
         restTemplate.postForEntity(getBaseUrl(), createRequest, RuleSetDto.class);
 
@@ -252,6 +259,41 @@ class RuleSetCrudE2ETest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void shouldGetRuleSetsByCategory() {
+        // Create rule sets with different categories
+        restTemplate.postForEntity(
+                getBaseUrl(),
+                new CreateRuleSetRequest("ruleset-cat-1", "RuleSet Category 1",
+                        List.of("rule-1" + uuid_exec), false, "SPEL", "Pricing"),
+                RuleSetDto.class
+        );
+        restTemplate.postForEntity(
+                getBaseUrl(),
+                new CreateRuleSetRequest("ruleset-cat-2", "RuleSet Category 2",
+                        List.of("rule-2" + uuid_exec), false, "SPEL", "Pricing"),
+                RuleSetDto.class
+        );
+        restTemplate.postForEntity(
+                getBaseUrl(),
+                new CreateRuleSetRequest("ruleset-cat-3", "RuleSet Category 3",
+                        List.of("rule-1" + uuid_exec), false, "SPEL", "Validation"),
+                RuleSetDto.class
+        );
+
+        // Get rule sets by category
+        ResponseEntity<RuleSetDto[]> response = restTemplate.getForEntity(
+                getBaseUrl() + "?category=Pricing",
+                RuleSetDto[].class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().length).isEqualTo(2);
+        assertThat(java.util.Arrays.stream(response.getBody())
+                .allMatch(rs -> "Pricing".equals(rs.ruleCategory()))).isTrue();
     }
 }
 

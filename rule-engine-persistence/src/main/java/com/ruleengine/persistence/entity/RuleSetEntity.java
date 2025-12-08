@@ -38,15 +38,19 @@ public class RuleSetEntity {
     @Column(name = "engine_type", nullable = false, length = 20)
     private EngineTypeEntity engineType;
 
+    @Column(name = "rule_category", nullable = false, length = 100)
+    private String ruleCategory;
+
     protected RuleSetEntity() {
         // Required by JPA
     }
 
-    public RuleSetEntity(String id, String name, Boolean stopOnFirstFailure, EngineTypeEntity engineType) {
+    public RuleSetEntity(String id, String name, Boolean stopOnFirstFailure, EngineTypeEntity engineType, String ruleCategory) {
         this.id = id;
         this.name = name;
         this.stopOnFirstFailure = stopOnFirstFailure;
         this.engineType = engineType;
+        this.ruleCategory = ruleCategory;
     }
 
     // Getters and setters
@@ -88,6 +92,14 @@ public class RuleSetEntity {
 
     public void setEngineType(EngineTypeEntity engineType) {
         this.engineType = engineType;
+    }
+
+    public String getRuleCategory() {
+        return ruleCategory;
+    }
+
+    public void setRuleCategory(String ruleCategory) {
+        this.ruleCategory = ruleCategory;
     }
 }
 

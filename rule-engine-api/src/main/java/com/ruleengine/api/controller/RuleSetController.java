@@ -49,10 +49,19 @@ public class RuleSetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RuleSetDto>> getAllRuleSets() {
-        List<RuleSetDto> ruleSets = ruleSetService.getAllRuleSets().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<RuleSetDto>> getAllRuleSets(
+            @RequestParam(required = false) String category
+    ) {
+        List<RuleSetDto> ruleSets;
+        if (category != null && !category.isBlank()) {
+            ruleSets = ruleSetService.getRuleSetsByCategory(category).stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+        } else {
+            ruleSets = ruleSetService.getAllRuleSets().stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+        }
         return ResponseEntity.ok(ruleSets);
     }
 
@@ -70,7 +79,8 @@ public class RuleSetController {
                     request.name(),
                     loadRules(request.ruleIds()),
                     request.stopOnFirstFailure() != null ? request.stopOnFirstFailure() : existing.stopOnFirstFailure(),
-                    request.engineType() != null ? EngineType.valueOf(request.engineType()) : existing.engineType()
+                    request.engineType() != null ? EngineType.valueOf(request.engineType()) : existing.engineType(),
+                    request.ruleCategory() != null && !request.ruleCategory().isBlank() ? request.ruleCategory() : existing.ruleCategory()
             );
             RuleSet saved = ruleSetService.updateRuleSet(updated);
             return ResponseEntity.ok(toDto(saved));
@@ -90,12 +100,16 @@ public class RuleSetController {
     }
 
     private RuleSet mapToRuleSet(CreateRuleSetRequest request) {
+        if (request.ruleCategory() == null || request.ruleCategory().isBlank()) {
+            throw new IllegalArgumentException("RuleSet ruleCategory cannot be null or blank");
+        }
         return new RuleSet(
                 request.id(),
                 request.name(),
                 loadRules(request.ruleIds()),
                 request.stopOnFirstFailure() != null ? request.stopOnFirstFailure() : false,
-                request.engineType() != null ? EngineType.valueOf(request.engineType()) : EngineType.SPEL
+                request.engineType() != null ? EngineType.valueOf(request.engineType()) : EngineType.SPEL,
+                request.ruleCategory()
         );
     }
 
@@ -114,7 +128,8 @@ public class RuleSetController {
                         .map(Rule::id)
                         .collect(Collectors.toList()),
                 ruleSet.stopOnFirstFailure(),
-                ruleSet.engineType().name()
+                ruleSet.engineType().name(),
+                ruleSet.ruleCategory()
         );
     }
 }

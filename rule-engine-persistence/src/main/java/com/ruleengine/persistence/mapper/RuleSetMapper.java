@@ -45,7 +45,8 @@ public final class RuleSetMapper {
             entity.getName(),
             rules,
             entity.getStopOnFirstFailure(),
-            toDomainEngineType(entity.getEngineType())
+            toDomainEngineType(entity.getEngineType()),
+            entity.getRuleCategory()
         );
     }
 
@@ -61,7 +62,8 @@ public final class RuleSetMapper {
             domain.id(),
             domain.name(),
             domain.stopOnFirstFailure(),
-            toEntityEngineType(domain.engineType())
+            toEntityEngineType(domain.engineType()),
+            domain.ruleCategory()
         );
 
         // Map rules
