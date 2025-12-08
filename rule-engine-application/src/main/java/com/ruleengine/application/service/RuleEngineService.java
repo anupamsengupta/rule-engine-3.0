@@ -12,7 +12,9 @@ import com.ruleengine.domain.strategy.ExpressionEvaluationStrategy;
 import com.ruleengine.infrastructure.factory.EngineStrategyRegistry;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Application service for orchestrating rule validation operations.
@@ -118,6 +120,132 @@ public class RuleEngineService {
         }
 
         return results;
+    }
+
+    /**
+     * Validates all rule sets for a given category against the evaluation context.
+     * Returns an aggregated result where overall success requires ALL rule sets to pass (AND operation).
+     * 
+     * @param ruleSets List of rule sets for the category
+     * @param context The evaluation context containing attribute values
+     * @return Aggregated validation result with details of each rule set
+     * @throws RuleEvaluationException if validation fails
+     */
+    public CategoryValidationResult validateRuleSetsByCategory(
+            List<RuleSet> ruleSets,
+            EvaluationContext context
+    ) throws RuleEvaluationException {
+        if (ruleSets == null || ruleSets.isEmpty()) {
+            return new CategoryValidationResult(
+                    true, // Empty category is considered valid
+                    "No rule sets found for category",
+                    new ArrayList<>(),
+                    new HashMap<>()
+            );
+        }
+
+        List<RuleSetValidationResult> ruleSetResults = new ArrayList<>();
+        boolean overallPassed = true;
+        int totalRuleSets = ruleSets.size();
+        int passedRuleSets = 0;
+        int failedRuleSets = 0;
+
+        for (RuleSet ruleSet : ruleSets) {
+            try {
+                List<RuleValidationResult> ruleResults = validateRuleSet(ruleSet, context);
+                
+                // Determine if this rule set passed (all rules must pass)
+                boolean ruleSetPassed = ruleResults.stream().allMatch(RuleValidationResult::passed);
+                
+                if (ruleSetPassed) {
+                    passedRuleSets++;
+                } else {
+                    failedRuleSets++;
+                    overallPassed = false; // AND operation: any failure means overall failure
+                }
+
+                // Build rule results for this rule set
+                List<RuleResult> ruleResultList = new ArrayList<>();
+                for (int i = 0; i < ruleSet.rules().size() && i < ruleResults.size(); i++) {
+                    Rule rule = ruleSet.rules().get(i);
+                    RuleValidationResult result = ruleResults.get(i);
+                    ruleResultList.add(new RuleResult(
+                            rule.id(),
+                            rule.name(),
+                            result.passed(),
+                            result.message().orElse(result.passed() ? "Rule passed" : "Rule failed")
+                    ));
+                }
+
+                ruleSetResults.add(new RuleSetValidationResult(
+                        ruleSet.id(),
+                        ruleSet.name(),
+                        ruleSetPassed,
+                        ruleSetPassed ? "All rules in rule set passed" : "One or more rules in rule set failed",
+                        ruleResultList
+                ));
+            } catch (RuleEvaluationException e) {
+                failedRuleSets++;
+                overallPassed = false;
+                ruleSetResults.add(new RuleSetValidationResult(
+                        ruleSet.id(),
+                        ruleSet.name(),
+                        false,
+                        "Rule set validation error: " + e.getMessage(),
+                        new ArrayList<>()
+                ));
+            }
+        }
+
+        String message = overallPassed 
+                ? String.format("All %d rule set(s) passed validation", totalRuleSets)
+                : String.format("%d of %d rule set(s) failed validation", failedRuleSets, totalRuleSets);
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("totalRuleSets", totalRuleSets);
+        details.put("passedRuleSets", passedRuleSets);
+        details.put("failedRuleSets", failedRuleSets);
+
+        return new CategoryValidationResult(
+                overallPassed,
+                message,
+                ruleSetResults,
+                details
+        );
+    }
+
+    /**
+     * Result of validating all rule sets for a category.
+     */
+    public record CategoryValidationResult(
+            boolean passed,
+            String message,
+            List<RuleSetValidationResult> ruleSetResults,
+            Map<String, Object> details
+    ) {
+    }
+
+    /**
+     * Result for a single rule set validation.
+     */
+    public record RuleSetValidationResult(
+            String ruleSetId,
+            String ruleSetName,
+            boolean passed,
+            String message,
+            List<RuleResult> ruleResults
+    ) {
+    }
+
+    /**
+     * Result for a single rule validation within a rule set.
+     */
+    public record RuleResult(
+            String ruleId,
+            String ruleName,
+            boolean passed,
+            String message
+    ) {
     }
 }
 
