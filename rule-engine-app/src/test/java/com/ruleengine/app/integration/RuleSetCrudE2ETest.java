@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,19 +42,22 @@ class RuleSetCrudE2ETest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    String uuid_exec = null;
+
     private String getBaseUrl() {
         return "http://localhost:" + port + "/api/rule-sets";
     }
 
     @BeforeEach
     void setUp() {
+        uuid_exec = UUID.randomUUID().toString();
         // Create attributes, conditions, and rules needed for rule sets
-        createAttribute("customer.age", "NUMBER");
+        createAttribute("customer.age" + uuid_exec, "NUMBER");
         // Use non-zero values to avoid potential JSON deserialization issues with 0
-        String cond1 = createCondition("cond-1", "Age check 1", "customer.age", "GT", null, 1);
-        String cond2 = createCondition("cond-2", "Age check 2", "customer.age", "GT", null, 1);
-        createRule("rule-1", "Rule 1", cond1);
-        createRule("rule-2", "Rule 2", cond2);
+        String cond1 = createCondition("cond-1" + uuid_exec, "Age check 1", "customer.age" + uuid_exec, "GT", null, 1);
+        String cond2 = createCondition("cond-2" + uuid_exec, "Age check 2", "customer.age" + uuid_exec, "GT", null, 1);
+        createRule("rule-1" + uuid_exec, "Rule 1", cond1);
+        createRule("rule-2" + uuid_exec, "Rule 2", cond2);
     }
 
     private void createAttribute(String code, String type) {
@@ -110,7 +114,7 @@ class RuleSetCrudE2ETest {
         CreateRuleSetRequest request = new CreateRuleSetRequest(
                 "ruleset-1",
                 "Test rule set",
-                List.of("rule-1", "rule-2"),
+                List.of("rule-1" + uuid_exec, "rule-2" + uuid_exec),
                 false,
                 "SPEL"
         );
@@ -135,14 +139,14 @@ class RuleSetCrudE2ETest {
         CreateRuleSetRequest createRequest = new CreateRuleSetRequest(
                 "ruleset-get",
                 "Test rule set",
-                List.of("rule-1"),
+                List.of("rule-1" + uuid_exec),
                 false,
                 "MVEL"
         );
-        restTemplate.postForEntity(getBaseUrl(), createRequest, RuleSetDto.class);
+        ResponseEntity<RuleSetDto> response = restTemplate.postForEntity(getBaseUrl(), createRequest, RuleSetDto.class);
 
         // Get it
-        ResponseEntity<RuleSetDto> response = restTemplate.getForEntity(
+        response = restTemplate.getForEntity(
                 getBaseUrl() + "/ruleset-get",
                 RuleSetDto.class
         );
@@ -158,13 +162,13 @@ class RuleSetCrudE2ETest {
         restTemplate.postForEntity(
                 getBaseUrl(),
                 new CreateRuleSetRequest("ruleset-all-1", "RuleSet 1", 
-                        List.of("rule-1"), false, "SPEL"),
+                        List.of("rule-1" + uuid_exec), false, "SPEL"),
                 RuleSetDto.class
         );
         restTemplate.postForEntity(
                 getBaseUrl(),
                 new CreateRuleSetRequest("ruleset-all-2", "RuleSet 2",
-                        List.of("rule-2"), true, "JEXL"),
+                        List.of("rule-2" + uuid_exec), true, "JEXL"),
                 RuleSetDto.class
         );
 
@@ -184,7 +188,7 @@ class RuleSetCrudE2ETest {
         CreateRuleSetRequest createRequest = new CreateRuleSetRequest(
                 "ruleset-update",
                 "Original name",
-                List.of("rule-1"),
+                List.of("rule-1" + uuid_exec),
                 false,
                 "SPEL"
         );
@@ -193,7 +197,7 @@ class RuleSetCrudE2ETest {
         // Update it
         UpdateRuleSetRequest updateRequest = new UpdateRuleSetRequest(
                 "Updated name",
-                List.of("rule-2"),
+                List.of("rule-2" + uuid_exec),
                 true,
                 "MVEL"
         );
@@ -218,7 +222,7 @@ class RuleSetCrudE2ETest {
         CreateRuleSetRequest createRequest = new CreateRuleSetRequest(
                 "ruleset-delete",
                 "To be deleted",
-                List.of("rule-1"),
+                List.of("rule-1" + uuid_exec),
                 false,
                 "SPEL"
         );
