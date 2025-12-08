@@ -1,7 +1,6 @@
 package com.ruleengine.app.integration;
 
 import com.ruleengine.api.dto.*;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
     "spring.jpa.hibernate.ddl-auto=create-drop",
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
-@Ignore
 @org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 class RuleSetCrudE2ETest {
 
