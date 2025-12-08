@@ -23,9 +23,11 @@ public class RuleEntity {
     @Column(name = "name", nullable = false, length = 500)
     private String name;
 
-    @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @OrderBy("sequenceOrder ASC")
-    private List<ConditionEntity> conditions = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "rule_conditions", joinColumns = @JoinColumn(name = "rule_id"))
+    @Column(name = "condition_id")
+    @OrderColumn(name = "condition_order")
+    private List<String> conditionIds = new ArrayList<>();
 
     @Column(name = "priority", nullable = false)
     private Integer priority;
@@ -67,12 +69,12 @@ public class RuleEntity {
         this.name = name;
     }
 
-    public List<ConditionEntity> getConditions() {
-        return conditions;
+    public List<String> getConditionIds() {
+        return conditionIds;
     }
 
-    public void setConditions(List<ConditionEntity> conditions) {
-        this.conditions = conditions;
+    public void setConditionIds(List<String> conditionIds) {
+        this.conditionIds = conditionIds;
     }
 
     public Integer getPriority() {

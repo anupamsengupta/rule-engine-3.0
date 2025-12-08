@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 /**
  * JPA entity for Condition persistence.
- * Represents a single condition in a rule.
+ * Conditions are standalone entities that can be reused across multiple rules.
  * 
  * Module: rule-engine-persistence
  * Layer: Persistence
@@ -13,67 +13,69 @@ import jakarta.persistence.*;
 @Table(name = "conditions")
 public class ConditionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, unique = true)
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rule_id", nullable = false)
-    private RuleEntity rule;
+    @Column(name = "name", nullable = false, length = 500)
+    private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_code", nullable = false)
-    private AttributeEntity attribute;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "left_attribute_code", nullable = false)
+    private AttributeEntity leftAttribute;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "operator", nullable = false)
     private ComparisonOperatorEntity operator;
 
-    @Column(name = "target_value", nullable = false, length = 1000)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "right_attribute_code")
+    private AttributeEntity rightAttribute;
+
+    @Column(name = "target_value", length = 1000)
     private String targetValue;
 
-    @Column(name = "target_value_type", nullable = false)
+    @Column(name = "target_value_type")
     private String targetValueType;
-
-    @Column(name = "sequence_order", nullable = false)
-    private Integer sequenceOrder;
 
     protected ConditionEntity() {
         // Required by JPA
     }
 
-    public ConditionEntity(RuleEntity rule, AttributeEntity attribute, ComparisonOperatorEntity operator, 
-                          String targetValue, String targetValueType, Integer sequenceOrder) {
-        this.rule = rule;
-        this.attribute = attribute;
+    public ConditionEntity(String id, String name, AttributeEntity leftAttribute, 
+                          ComparisonOperatorEntity operator, AttributeEntity rightAttribute,
+                          String targetValue, String targetValueType) {
+        this.id = id;
+        this.name = name;
+        this.leftAttribute = leftAttribute;
         this.operator = operator;
+        this.rightAttribute = rightAttribute;
         this.targetValue = targetValue;
         this.targetValueType = targetValueType;
-        this.sequenceOrder = sequenceOrder;
     }
 
     // Getters and setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public RuleEntity getRule() {
-        return rule;
+    public String getName() {
+        return name;
     }
 
-    public void setRule(RuleEntity rule) {
-        this.rule = rule;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public AttributeEntity getAttribute() {
-        return attribute;
+    public AttributeEntity getLeftAttribute() {
+        return leftAttribute;
     }
 
-    public void setAttribute(AttributeEntity attribute) {
-        this.attribute = attribute;
+    public void setLeftAttribute(AttributeEntity leftAttribute) {
+        this.leftAttribute = leftAttribute;
     }
 
     public ComparisonOperatorEntity getOperator() {
@@ -82,6 +84,14 @@ public class ConditionEntity {
 
     public void setOperator(ComparisonOperatorEntity operator) {
         this.operator = operator;
+    }
+
+    public AttributeEntity getRightAttribute() {
+        return rightAttribute;
+    }
+
+    public void setRightAttribute(AttributeEntity rightAttribute) {
+        this.rightAttribute = rightAttribute;
     }
 
     public String getTargetValue() {
@@ -99,13 +109,4 @@ public class ConditionEntity {
     public void setTargetValueType(String targetValueType) {
         this.targetValueType = targetValueType;
     }
-
-    public Integer getSequenceOrder() {
-        return sequenceOrder;
-    }
-
-    public void setSequenceOrder(Integer sequenceOrder) {
-        this.sequenceOrder = sequenceOrder;
-    }
 }
-

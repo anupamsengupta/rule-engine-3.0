@@ -44,12 +44,37 @@ public class RuleController {
             @RequestBody RuleValidationRequest request
     ) {
         try {
-            // Map DTO to domain model
-            Rule rule = mapToRule(request);
+            // For validation endpoint, we support inline conditions for ad-hoc validation
+            // Convert inline conditions to Condition objects
+            List<Condition> conditions = request.conditions().stream()
+                .map(cond -> {
+                    Attribute attribute = new Attribute(
+                        cond.attributeCode(),
+                        AttributeType.valueOf(cond.attributeType()),
+                        null
+                    );
+                    return Condition.attributeVsValue(
+                        "temp-" + java.util.UUID.randomUUID().toString(),
+                        "Temporary condition",
+                        attribute,
+                        ComparisonOperator.valueOf(cond.operator()),
+                        cond.targetValue()
+                    );
+                })
+                .collect(Collectors.toList());
+            
+            // Create a temporary rule with condition IDs (not used for validation)
+            Rule rule = new Rule(
+                request.ruleId(),
+                request.ruleName(),
+                conditions.stream().map(Condition::id).collect(Collectors.toList()),
+                RuleMetadata.defaults()
+            );
+            
             EvaluationContext context = EvaluationContext.from(request.context());
 
-            // Delegate to application service
-            RuleValidationResult result = ruleEngineService.validateRule(rule, context);
+            // Delegate to application service with conditions
+            RuleValidationResult result = ruleEngineService.validateRule(rule, context, conditions);
 
             // Map domain result to DTO
             RuleValidationResponse response = new RuleValidationResponse(
@@ -129,7 +154,7 @@ public class RuleController {
             Rule updated = new Rule(
                     id,
                     request.name(),
-                    mapToConditions(request.conditions()),
+                    request.conditionIds() != null ? request.conditionIds() : existing.conditionIds(),
                     new RuleMetadata(
                             request.priority() != null ? request.priority() : existing.metadata().priority(),
                             request.active() != null ? request.active() : existing.metadata().active(),
@@ -155,35 +180,12 @@ public class RuleController {
 
     // Helper methods
 
-    private Rule mapToRule(RuleValidationRequest request) {
-        List<Condition> conditions = request.conditions().stream()
-            .map(cond -> {
-                Attribute attribute = new Attribute(
-                    cond.attributeCode(),
-                    AttributeType.valueOf(cond.attributeType()),
-                    null
-                );
-                return new Condition(
-                    attribute,
-                    ComparisonOperator.valueOf(cond.operator()),
-                    cond.targetValue()
-                );
-            })
-            .collect(Collectors.toList());
-
-        return new Rule(
-            request.ruleId(),
-            request.ruleName(),
-            conditions,
-            RuleMetadata.defaults()
-        );
-    }
 
     private Rule mapToRule(CreateRuleRequest request) {
         return new Rule(
                 request.id(),
                 request.name(),
-                mapToConditions(request.conditions()),
+                request.conditionIds() != null ? request.conditionIds() : List.of(),
                 new RuleMetadata(
                         request.priority() != null ? request.priority() : 0,
                         request.active() != null ? request.active() : true,
@@ -192,35 +194,11 @@ public class RuleController {
         );
     }
 
-    private List<Condition> mapToConditions(List<ConditionDto> conditionDtos) {
-        return conditionDtos.stream()
-                .map(cond -> {
-                    Attribute attribute = new Attribute(
-                            cond.attributeCode(),
-                            AttributeType.valueOf(cond.attributeType()),
-                            null
-                    );
-                    return new Condition(
-                            attribute,
-                            ComparisonOperator.valueOf(cond.operator()),
-                            cond.targetValue()
-                    );
-                })
-                .collect(Collectors.toList());
-    }
-
     private RuleDto toDto(Rule rule) {
         return new RuleDto(
                 rule.id(),
                 rule.name(),
-                rule.conditions().stream()
-                        .map(cond -> new ConditionDto(
-                                cond.attribute().code(),
-                                cond.attribute().type().name(),
-                                cond.operator().name(),
-                                cond.targetValue()
-                        ))
-                        .collect(Collectors.toList()),
+                rule.conditionIds(),
                 new RuleMetadataDto(
                         rule.metadata().priority(),
                         rule.metadata().active(),

@@ -1,13 +1,13 @@
 package com.ruleengine.api.dto;
 
 /**
- * DTO for Condition representation in API layer.
+ * DTO for updating an existing Condition.
+ * Either rightAttributeCode OR targetValue must be provided, but not both.
  *
  * Module: rule-engine-api
  * Layer: API
  */
-public record ConditionDto(
-        String id,
+public record UpdateConditionRequest(
         String name,
         String leftAttributeCode,
         String operator,
@@ -15,3 +15,4 @@ public record ConditionDto(
         Object targetValue
 ) {
 }
+

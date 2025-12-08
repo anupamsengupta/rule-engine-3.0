@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * DTO for Rule representation in API layer.
+ * References conditions by their IDs.
  *
  * Module: rule-engine-api
  * Layer: API
@@ -11,7 +12,7 @@ import java.util.List;
 public record RuleDto(
         String id,
         String name,
-        List<ConditionDto> conditions,
+        List<String> conditionIds,
         RuleMetadataDto metadata
 ) {
 }

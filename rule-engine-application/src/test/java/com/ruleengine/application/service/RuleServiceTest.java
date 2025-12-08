@@ -43,12 +43,10 @@ class RuleServiceTest {
 
     @BeforeEach
     void setUp() {
-        Attribute attribute = new Attribute("customer.age", AttributeType.NUMBER);
-        Condition condition = new Condition(attribute, ComparisonOperator.GTE, 18);
         testRule = new Rule(
                 "rule-1",
                 "Adult customer rule",
-                List.of(condition),
+                List.of("cond-1"),
                 new RuleMetadata(10, true, Set.of("customer", "age"))
         );
     }
@@ -63,25 +61,7 @@ class RuleServiceTest {
                 true,
                 Set.of("customer", "age")
         );
-        // Set up conditions for the entity
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "customer.age",
-                        "customer.age",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.NUMBER,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        entity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.GTE,
-                        "18",
-                        "java.lang.Integer",
-                        0
-                );
-        entity.setConditions(List.of(conditionEntity));
+        entity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         when(ruleRepository.existsById("rule-1")).thenReturn(false);
         when(ruleRepository.save(any(RuleEntity.class))).thenReturn(entity);
 
@@ -92,6 +72,7 @@ class RuleServiceTest {
         assertThat(created).isNotNull();
         assertThat(created.id()).isEqualTo("rule-1");
         assertThat(created.name()).isEqualTo("Adult customer rule");
+        assertThat(created.conditionIds()).containsExactly("cond-1");
         verify(ruleRepository).save(any(RuleEntity.class));
     }
 
@@ -117,25 +98,7 @@ class RuleServiceTest {
                 true,
                 Set.of("customer")
         );
-        // Set up conditions for the entity
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "customer.age",
-                        "customer.age",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.NUMBER,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        entity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.GTE,
-                        "18",
-                        "java.lang.Integer",
-                        0
-                );
-        entity.setConditions(List.of(conditionEntity));
+        entity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         when(ruleRepository.findById("rule-1")).thenReturn(Optional.of(entity));
 
         // When
@@ -144,6 +107,7 @@ class RuleServiceTest {
         // Then
         assertThat(result).isPresent();
         assertThat(result.get().id()).isEqualTo("rule-1");
+        assertThat(result.get().conditionIds()).containsExactly("cond-1");
     }
 
     @Test
@@ -168,25 +132,7 @@ class RuleServiceTest {
                 false,
                 Set.of()
         );
-        // Set up existing conditions
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "customer.age",
-                        "customer.age",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.NUMBER,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        existingEntity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.GTE,
-                        "18",
-                        "java.lang.Integer",
-                        0
-                );
-        existingEntity.setConditions(new java.util.ArrayList<>(List.of(conditionEntity)));
+        existingEntity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         
         RuleEntity savedEntity = new RuleEntity(
                 "rule-1",
@@ -195,14 +141,14 @@ class RuleServiceTest {
                 true,
                 Set.of("new-tag")
         );
-        savedEntity.setConditions(new java.util.ArrayList<>(List.of(conditionEntity)));
+        savedEntity.setConditionIds(new java.util.ArrayList<>(List.of("cond-2")));
         when(ruleRepository.findById("rule-1")).thenReturn(Optional.of(existingEntity));
         when(ruleRepository.save(any(RuleEntity.class))).thenReturn(savedEntity);
 
         Rule updated = new Rule(
                 "rule-1",
                 "New name",
-                testRule.conditions(),
+                List.of("cond-2"),
                 new RuleMetadata(20, true, Set.of("new-tag"))
         );
 
@@ -212,6 +158,7 @@ class RuleServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo("New name");
+        assertThat(result.conditionIds()).containsExactly("cond-2");
         verify(ruleRepository).save(any(RuleEntity.class));
     }
 
@@ -222,7 +169,7 @@ class RuleServiceTest {
         Rule nonExistent = new Rule(
                 "nonexistent",
                 "Non-existent rule",
-                testRule.conditions(),
+                testRule.conditionIds(),
                 testRule.metadata()
         );
 

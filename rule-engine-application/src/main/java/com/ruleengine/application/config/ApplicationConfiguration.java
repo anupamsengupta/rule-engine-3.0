@@ -1,5 +1,6 @@
 package com.ruleengine.application.config;
 
+import com.ruleengine.application.service.ConditionService;
 import com.ruleengine.application.service.ExpressionEngineService;
 import com.ruleengine.application.service.RuleEngineService;
 import com.ruleengine.domain.factory.EngineType;
@@ -18,9 +19,10 @@ public class ApplicationConfiguration {
 
     @Bean
     public RuleEngineService ruleEngineService(
-            EngineStrategyRegistry engineStrategyRegistry
+            EngineStrategyRegistry engineStrategyRegistry,
+            ConditionService conditionService
     ) {
-        return new RuleEngineService(engineStrategyRegistry, EngineType.SPEL);
+        return new RuleEngineService(engineStrategyRegistry, EngineType.SPEL, conditionService);
     }
 
     @Bean

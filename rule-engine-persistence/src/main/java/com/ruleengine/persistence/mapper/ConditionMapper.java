@@ -5,6 +5,8 @@ import com.ruleengine.domain.operator.ComparisonOperator;
 import com.ruleengine.domain.rule.Condition;
 import com.ruleengine.persistence.entity.*;
 
+import java.util.Optional;
+
 /**
  * Mapper for converting between Condition domain model and ConditionEntity.
  * 
@@ -21,42 +23,64 @@ public final class ConditionMapper {
      * Converts a ConditionEntity to a domain Condition.
      */
     public static Condition toDomain(ConditionEntity entity) {
-        if (entity == null || entity.getAttribute() == null) {
+        if (entity == null || entity.getLeftAttribute() == null) {
             return null;
         }
 
-        Attribute attribute = AttributeMapper.toDomain(entity.getAttribute());
+        Attribute leftAttribute = AttributeMapper.toDomain(entity.getLeftAttribute());
         ComparisonOperator operator = ComparisonOperator.valueOf(entity.getOperator().name());
         
-        // Deserialize target value based on type
-        Object targetValue = deserializeValue(entity.getTargetValue(), entity.getTargetValueType());
+        Optional<Attribute> rightAttribute = Optional.ofNullable(entity.getRightAttribute())
+                .map(AttributeMapper::toDomain);
+        
+        Optional<Object> targetValue = Optional.empty();
+        if (entity.getTargetValue() != null) {
+            Object deserialized = deserializeValue(entity.getTargetValue(), entity.getTargetValueType());
+            targetValue = Optional.of(deserialized);
+        }
 
-        return new Condition(attribute, operator, targetValue);
+        return new Condition(
+                entity.getId(),
+                entity.getName(),
+                leftAttribute,
+                operator,
+                rightAttribute,
+                targetValue
+        );
     }
 
     /**
      * Converts a domain Condition to a ConditionEntity.
      */
-    public static ConditionEntity toEntity(Condition domain, RuleEntity ruleEntity, int sequenceOrder) {
+    public static ConditionEntity toEntity(Condition domain) {
         if (domain == null) {
             return null;
         }
 
-        AttributeEntity attributeEntity = AttributeMapper.toEntity(domain.attribute());
+        AttributeEntity leftAttributeEntity = AttributeMapper.toEntity(domain.leftAttribute());
         ComparisonOperatorEntity operator = ComparisonOperatorEntity.valueOf(domain.operator().name());
         
-        // Serialize target value
-        Object targetValueObj = domain.targetValue();
-        String targetValue = serializeValue(targetValueObj);
-        String targetValueType = targetValueObj != null ? targetValueObj.getClass().getName() : "java.lang.Object";
+        AttributeEntity rightAttributeEntity = null;
+        if (domain.rightAttribute().isPresent()) {
+            rightAttributeEntity = AttributeMapper.toEntity(domain.rightAttribute().get());
+        }
+        
+        String targetValue = null;
+        String targetValueType = null;
+        if (domain.targetValue().isPresent()) {
+            Object targetValueObj = domain.targetValue().get();
+            targetValue = serializeValue(targetValueObj);
+            targetValueType = targetValueObj != null ? targetValueObj.getClass().getName() : "java.lang.Object";
+        }
 
         return new ConditionEntity(
-            ruleEntity,
-            attributeEntity,
-            operator,
-            targetValue,
-            targetValueType,
-            sequenceOrder
+                domain.id(),
+                domain.name(),
+                leftAttributeEntity,
+                operator,
+                rightAttributeEntity,
+                targetValue,
+                targetValueType
         );
     }
 
@@ -94,4 +118,3 @@ public final class ConditionMapper {
         return value;
     }
 }
-

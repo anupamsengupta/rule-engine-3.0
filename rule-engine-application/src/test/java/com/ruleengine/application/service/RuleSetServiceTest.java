@@ -41,14 +41,10 @@ class RuleSetServiceTest {
     @BeforeEach
     void setUp() {
         // Create a simple rule for the rule set
-        com.ruleengine.domain.attribute.Attribute attribute = 
-                new com.ruleengine.domain.attribute.Attribute("test.attr", com.ruleengine.domain.attribute.AttributeType.STRING);
-        com.ruleengine.domain.rule.Condition condition = 
-                new com.ruleengine.domain.rule.Condition(attribute, com.ruleengine.domain.operator.ComparisonOperator.EQ, "value");
         Rule rule = new Rule(
                 "rule-1",
                 "Test rule",
-                List.of(condition),
+                List.of("cond-1"),
                 null
         );
         testRuleSet = new RuleSet(
@@ -77,24 +73,7 @@ class RuleSetServiceTest {
                 true,
                 null
         );
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "test.attr",
-                        "test.attr",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.STRING,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        ruleEntity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.EQ,
-                        "value",
-                        "java.lang.String",
-                        0
-                );
-        ruleEntity.setConditions(List.of(conditionEntity));
+        ruleEntity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         entity.setRules(new java.util.ArrayList<>(List.of(ruleEntity)));
         when(ruleSetRepository.existsById("ruleset-1")).thenReturn(false);
         when(ruleSetRepository.save(any(RuleSetEntity.class))).thenReturn(entity);
@@ -138,24 +117,7 @@ class RuleSetServiceTest {
                 true,
                 null
         );
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "test.attr",
-                        "test.attr",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.STRING,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        ruleEntity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.EQ,
-                        "value",
-                        "java.lang.String",
-                        0
-                );
-        ruleEntity.setConditions(List.of(conditionEntity));
+        ruleEntity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         entity.setRules(new java.util.ArrayList<>(List.of(ruleEntity)));
         when(ruleSetRepository.findById("ruleset-1")).thenReturn(Optional.of(entity));
 
@@ -188,7 +150,7 @@ class RuleSetServiceTest {
                 false,
                 com.ruleengine.persistence.entity.EngineTypeEntity.SPEL
         );
-        // Set up existing rule with conditions
+        // Set up existing rule
         RuleEntity existingRuleEntity = new RuleEntity(
                 "rule-1",
                 "Test rule",
@@ -196,24 +158,7 @@ class RuleSetServiceTest {
                 true,
                 null
         );
-        com.ruleengine.persistence.entity.AttributeEntity attrEntity = 
-                new com.ruleengine.persistence.entity.AttributeEntity(
-                        "test.attr",
-                        "test.attr",
-                        com.ruleengine.persistence.entity.AttributeTypeEntity.STRING,
-                        null,
-                        null
-                );
-        com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                new com.ruleengine.persistence.entity.ConditionEntity(
-                        existingRuleEntity,
-                        attrEntity,
-                        com.ruleengine.persistence.entity.ComparisonOperatorEntity.EQ,
-                        "value",
-                        "java.lang.String",
-                        0
-                );
-        existingRuleEntity.setConditions(new java.util.ArrayList<>(List.of(conditionEntity)));
+        existingRuleEntity.setConditionIds(new java.util.ArrayList<>(List.of("cond-1")));
         existingEntity.setRules(new java.util.ArrayList<>(List.of(existingRuleEntity)));
         
         RuleSetEntity savedEntity = new RuleSetEntity(

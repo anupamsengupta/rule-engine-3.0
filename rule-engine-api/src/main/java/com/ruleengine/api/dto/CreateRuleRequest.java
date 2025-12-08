@@ -5,6 +5,7 @@ import java.util.Set;
 
 /**
  * DTO for creating a new Rule.
+ * References conditions by their IDs.
  *
  * Module: rule-engine-api
  * Layer: API
@@ -12,7 +13,7 @@ import java.util.Set;
 public record CreateRuleRequest(
         String id,
         String name,
-        List<ConditionDto> conditions,
+        List<String> conditionIds,
         Integer priority,
         Boolean active,
         Set<String> tags

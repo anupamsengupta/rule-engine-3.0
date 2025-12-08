@@ -7,11 +7,12 @@ import java.util.List;
 
 /**
  * Domain model representing a rule that can be validated against an evaluation context.
+ * Rules reference conditions by ID, allowing conditions to be reused across multiple rules.
  * Rules are immutable and delegate actual validation logic to strategies.
  *
  * @param id          Unique identifier for the rule
  * @param name        Human-readable name
- * @param conditions  List of conditions that must be satisfied
+ * @param conditionIds  List of condition IDs that must be satisfied
  * @param metadata    Optional metadata (priority, active flag, tags)
  * 
  * Module: rule-engine-domain
@@ -20,7 +21,7 @@ import java.util.List;
 public record Rule(
         String id,
         String name,
-        List<Condition> conditions,
+        List<String> conditionIds,
         RuleMetadata metadata
 ) {
     public Rule {
@@ -30,7 +31,7 @@ public record Rule(
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Rule name cannot be null or blank");
         }
-        if (conditions == null || conditions.isEmpty()) {
+        if (conditionIds == null || conditionIds.isEmpty()) {
             throw new IllegalArgumentException("Rule must have at least one condition");
         }
         if (metadata == null) {
@@ -39,21 +40,23 @@ public record Rule(
     }
 
     /**
-     * Validates this rule against the given evaluation context.
+     * Validates this rule against the given evaluation context using the provided conditions.
      * The actual validation logic is delegated to a strategy.
      *
      * @param context   The evaluation context containing attribute values
      * @param strategy  The strategy to use for expression evaluation
+     * @param conditions The list of conditions to evaluate (resolved from conditionIds)
      * @return RuleValidationResult indicating whether the rule passed
      */
-    public RuleValidationResult validate(EvaluationContext context, ExpressionEvaluationStrategy strategy) {
+    public RuleValidationResult validate(EvaluationContext context, ExpressionEvaluationStrategy strategy, 
+                                        List<Condition> conditions) {
         if (!metadata.active()) {
             return RuleValidationResult.failure("Rule is not active");
         }
 
         try {
             // Build expression from conditions and evaluate using strategy
-            String expression = buildExpression();
+            String expression = buildExpression(conditions);
             var expressionResult = strategy.evaluate(expression, context);
 
             if (expressionResult.error().isPresent()) {
@@ -77,20 +80,25 @@ public record Rule(
 
     /**
      * Builds an expression string from the conditions.
-     * This is a simplified implementation; in practice, this might be more sophisticated.
      */
-    private String buildExpression() {
+    private String buildExpression(List<Condition> conditions) {
         var builder = new StringBuilder();
         for (int i = 0; i < conditions.size(); i++) {
             if (i > 0) {
                 builder.append(" AND ");
             }
             Condition condition = conditions.get(i);
-            builder.append(condition.attribute().code())
-                   .append(" ")
-                   .append(condition.operator().getSymbol())
-                   .append(" ")
-                   .append(formatValue(condition.targetValue()));
+            
+            builder.append(condition.leftAttribute().code());
+            builder.append(" ").append(condition.operator().getSymbol()).append(" ");
+            
+            if (condition.rightAttribute().isPresent()) {
+                // Attribute vs Attribute
+                builder.append(condition.rightAttribute().get().code());
+            } else if (condition.targetValue().isPresent()) {
+                // Attribute vs Value
+                builder.append(formatValue(condition.targetValue().get()));
+            }
         }
         return builder.toString();
     }
@@ -121,4 +129,3 @@ public record Rule(
         return value != null;
     }
 }
-

@@ -101,17 +101,9 @@ public class RuleService {
         existing.setActive(rule.metadata().active());
         existing.setTags(rule.metadata().tags());
         
-        // Properly manage conditions collection to avoid Hibernate issues
-        // Remove all existing conditions
-        existing.getConditions().clear();
-        
-        // Add new conditions
-        for (int i = 0; i < rule.conditions().size(); i++) {
-            com.ruleengine.domain.rule.Condition condition = rule.conditions().get(i);
-            com.ruleengine.persistence.entity.ConditionEntity conditionEntity = 
-                    com.ruleengine.persistence.mapper.ConditionMapper.toEntity(condition, existing, i);
-            existing.getConditions().add(conditionEntity);
-        }
+        // Update condition IDs
+        existing.getConditionIds().clear();
+        existing.getConditionIds().addAll(rule.conditionIds());
         
         RuleEntity saved = ruleRepository.save(existing);
         return RuleMapper.toDomain(saved);
